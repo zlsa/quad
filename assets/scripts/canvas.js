@@ -72,7 +72,7 @@ function canvas_draw_target(cc, target) {
   var size = 12;
   cc.fillRect(-size/2 + meters(target[0]), -meters(target[1])-size/2, size, size);
 
-  cc.fillStyle="#aaa";
+  cc.fillStyle="#fff";
   size = 6;
   cc.fillRect(-size/2 + meters(target[0]), -meters(target[1])-size/2, size, size);
 }
@@ -107,31 +107,40 @@ function canvas_draw_quad(cc, quad) {
 
   cc.fillRect(meters(quad.power.right_position/quad.size)-disk/2, -height, disk, height/2);
 
-  cc.beginPath();
+  if(true) {
 
-  var thrust=-meters(quad.power.left_actual*0.5*quad.size);
-  cc.moveTo(meters(quad.power.left_position/quad.size), 0);
-  cc.lineTo(meters(quad.power.left_position/quad.size), thrust);
+    cc.beginPath();
 
-  thrust=-meters(quad.power.right_actual*0.5*quad.size);
-  cc.moveTo(meters(quad.power.right_position/quad.size), 0);
-  cc.lineTo(meters(quad.power.right_position/quad.size), thrust);
+    var thrust=-meters(quad.power.left_motor*0.5*quad.size);
+    cc.moveTo(meters(quad.power.left_position/quad.size), 0);
+    cc.lineTo(meters(quad.power.left_position/quad.size), thrust);
 
-  cc.strokeStyle="#f22";
-  cc.lineWidth=4;
-  cc.stroke();
-  
+    thrust=-meters(quad.power.right_motor*0.5*quad.size);
+    cc.moveTo(meters(quad.power.right_position/quad.size), 0);
+    cc.lineTo(meters(quad.power.right_position/quad.size), thrust);
+
+    cc.strokeStyle="#f22";
+    cc.lineWidth=4;
+    cc.stroke();
+    
+  }
+
   cc.restore();
 
-  cc.beginPath();
-  cc.beginPath();
-  vspeed = -quad.autopilot.vspeed.input * 30;
-  hspeed =  quad.autopilot.hspeed.input * 30;
-  cc.strokeStyle = "#f83";
-  cc.lineWidth=2;
-  cc.moveTo(0, 0);
-  cc.lineTo(hspeed, vspeed);
-  cc.stroke();
+  if(false) {
+
+    cc.beginPath();
+    cc.beginPath();
+    vspeed = -quad.autopilot.vspeed.input * 30;
+    hspeed =  quad.autopilot.hspeed.input * 30;
+    cc.moveTo(0, 0);
+    cc.lineTo(hspeed, vspeed);
+
+    cc.lineCap="round";
+    cc.strokeStyle = "#f83";
+    cc.lineWidth=3;
+    cc.stroke();
+  }
   
   cc.restore();
   

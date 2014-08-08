@@ -166,7 +166,7 @@ var Lowpass=function(mix) {
   this.mix = mix;
 
   this.tick=function() {
-    var mix=this.mix*delta();
+    var mix=this.mix;
     this.value = (this.target * (1-mix)) + (this.value * mix);
   };
 };
@@ -178,7 +178,9 @@ var PID=function(p, i, d) {
 
   this.target = 0;
   this.input  = 0;
-  this.speed = 0;
+  this.speed  = 0;
+
+  this.speed_lowpass = new Lowpass(0.99);
 
   this.proportional = 0;
   this.integral = 0;
@@ -193,10 +195,13 @@ var PID=function(p, i, d) {
   },
 
   this.predict_error = function() {
-    return this.target - (this.input + (this.speed * delta()));
+    return this.target - (this.input + (this.speed_lowpass.value * delta()));
   },
 
   this.tick = function() {
+    this.speed_lowpass.target = this.integral;
+    this.speed_lowpass.tick();
+
     this.error = (this.target - this.input);
 
     this.proportional = this.error * this.p;
@@ -206,7 +211,3 @@ var PID=function(p, i, d) {
     this.value = this.proportional + this.integral + this.deriviative;
   }
 };
-
-
-
-

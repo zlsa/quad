@@ -38,17 +38,16 @@ function input_done() {
 
 function input_keydown(keycode) {
   if(keycode == prop.input.keysym.r) {
-    prop.quad.quads=[];
-    quad_init()
+    quad_reset();
   }
 }
 
 function input_update_pre() {
-  var d=delta();
+  var s=5*delta();
   if(prop.input.keys[prop.input.keysym.up]) {
-    prop.quad.target[1] += 3*d;
+    prop.quad.target[1] += s;
   } else if(prop.input.keys[prop.input.keysym.down]) {
-    prop.quad.target[1] -= 3*d;
+    prop.quad.target[1] -= s;
   }
   if(prop.input.keys[prop.input.keysym.x]) {
     prop.quad.flip = true;
@@ -56,8 +55,8 @@ function input_update_pre() {
     prop.quad.flip = false;
   }
   if(prop.input.keys[prop.input.keysym.right]) {
-    prop.quad.target[0] += 3*d;
+    prop.quad.target[0] += s;
   } else if(prop.input.keys[prop.input.keysym.left]) {
-    prop.quad.target[0] -= 3*d;
+    prop.quad.target[0] -= s;
   }
 }
