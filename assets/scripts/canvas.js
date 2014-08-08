@@ -47,27 +47,34 @@ function canvas_draw_ground(cc) {
   var height = Math.ceil(prop.canvas.size.height/2)*2;
   cc.fillStyle="#333";
   cc.fillRect(-width / 2, 0, width, 10);
-
-  cc.fillStyle="#f00";
-  var size = 12;
-  cc.fillRect(-size/2 + meters(prop.ui.pan[0]+prop.quad.target[0]), -meters(prop.quad.target[1])-size/2, size, size);
-
-  cc.fillStyle="#aaa";
-  size = 6;
-  cc.fillRect(-size/2 + meters(prop.ui.pan[0]+prop.quad.target[0]), -meters(prop.quad.target[1])-size/2, size, size);
 }
 
 /* GRID */
 
 function canvas_draw_grid(cc) {
   cc.fillStyle="#aaa";
-  var spacing=100;
+  var spacing=300;
   var width = Math.ceil(prop.canvas.size.width/2) + spacing;
-  var x = -(meters(prop.ui.pan[0]) % spacing);
-  for(var i=-width-x;i<width+x;i+=spacing) {
-    var j = i;// + meters(prop.ui.pan[0]);
-    cc.fillRect(j-5, -50, 10, 10);
+  var height = Math.ceil(prop.canvas.size.height/2) + spacing;
+  var xs = -(meters(prop.ui.pan[0]) % spacing);
+  var ys = -(meters(prop.ui.pan[1]) % spacing);
+  for(var x=-width-xs;x<width+xs;x+=spacing) {
+    for(var y=-height-ys;y<height+ys;y+=spacing) {
+      cc.fillRect(x-5, y-5, 10, 10);
+    }
   }
+}
+
+/* TARGET */
+
+function canvas_draw_target(cc, target) {
+  cc.fillStyle="#f00";
+  var size = 12;
+  cc.fillRect(-size/2 + meters(target[0]), -meters(target[1])-size/2, size, size);
+
+  cc.fillStyle="#aaa";
+  size = 6;
+  cc.fillRect(-size/2 + meters(target[0]), -meters(target[1])-size/2, size, size);
 }
 
 /* QUAD */
@@ -79,29 +86,36 @@ function canvas_draw_quad(cc, quad) {
   var x=meters(quad.body.position[0]);
   var y=meters(quad.body.position[1]);
   cc.translate(x, -y);
-  
-  var vspeed = -quad.autopilot.vspeed.get() * 30;
-  var hspeed =  quad.autopilot.hspeed.get() * 30;
 
   cc.save();
 
   cc.rotate(-quad.body.angle);
 
+  cc.translate(0, -height/2);
+  cc.scale(quad.size, quad.size);
   cc.fillStyle="#38f";
   cc.fillRect(-width / 2, -height / 2, width, height);
+
   cc.fillStyle="#222";
   width = meters(0.2);
   cc.fillRect(-width / 2, height / 2, width, height);
 
+  cc.fillStyle="#222";
+  width = meters(0.8);
+  var disk = meters(0.35);
+  cc.fillRect(meters(quad.power.left_position/quad.size)-disk/2, -height, disk, height/2);
+
+  cc.fillRect(meters(quad.power.right_position/quad.size)-disk/2, -height, disk, height/2);
+
   cc.beginPath();
 
-  var thrust=-meters(quad.power.left_actual*0.5);
-  cc.moveTo(meters(-0.2), 0);
-  cc.lineTo(meters(-0.2), thrust);
+  var thrust=-meters(quad.power.left_actual*0.5*quad.size);
+  cc.moveTo(meters(quad.power.left_position/quad.size), 0);
+  cc.lineTo(meters(quad.power.left_position/quad.size), thrust);
 
-  thrust=-meters(quad.power.right_actual*0.5);
-  cc.moveTo(meters(0.2), 0);
-  cc.lineTo(meters(0.2), thrust);
+  thrust=-meters(quad.power.right_actual*0.5*quad.size);
+  cc.moveTo(meters(quad.power.right_position/quad.size), 0);
+  cc.lineTo(meters(quad.power.right_position/quad.size), thrust);
 
   cc.strokeStyle="#f22";
   cc.lineWidth=4;
@@ -110,13 +124,18 @@ function canvas_draw_quad(cc, quad) {
   cc.restore();
 
   cc.beginPath();
+  cc.beginPath();
+  vspeed = -quad.autopilot.vspeed.input * 30;
+  hspeed =  quad.autopilot.hspeed.input * 30;
   cc.strokeStyle = "#f83";
   cc.lineWidth=2;
   cc.moveTo(0, 0);
   cc.lineTo(hspeed, vspeed);
   cc.stroke();
-
+  
   cc.restore();
+  
+  canvas_draw_target(cc, quad.target);
 }
 
 function canvas_draw_quads(cc) {
@@ -132,14 +151,14 @@ function canvas_update() {
   canvas_clear(cc);
   cc.translate(Math.round(prop.canvas.size.width/2), Math.round(prop.canvas.size.height/2));
   
+  cc.save();
+  canvas_draw_grid(cc);
+  cc.restore();
+
   cc.translate(0, meters(prop.ui.pan[1]));
 
   cc.save();
   canvas_draw_ground(cc);
-  cc.restore();
-
-  cc.save();
-  canvas_draw_grid(cc);
   cc.restore();
 
   cc.translate(meters(prop.ui.pan[0]), 0);

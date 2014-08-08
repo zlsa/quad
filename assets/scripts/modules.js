@@ -10,12 +10,14 @@ var MODULES=[
 
   "input",
 
-//  "get",
+  "get",
 
-  "world",
+  "audio",
 
   "quad",
   
+  "world",
+
   "ui",
 
   "canvas",
@@ -85,6 +87,7 @@ var log_strings={
 
 function prop_init() {
   prop={};
+  prop.complete=false;
   prop.temp="nothing here";
   prop.version=VERSION;
   prop.version_string="v"+VERSION.join(".");
@@ -243,6 +246,10 @@ function resize() {
 }
 
 function update() {
+  if(!prop.complete) {
+    call_module("*","complete");
+    prop.complete=true;
+  }
   call_module("*","update_pre");
   call_module("*","update");
   call_module("*","update_post");

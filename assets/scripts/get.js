@@ -17,24 +17,51 @@ var Content=function(options) {
     if("payload" in options) this.payload=options.payload;
   }
 
+  if(this.type == "image") this.data=new Image();
+
   this.getJSON=function() {
-//    log("Getting JSON file "+this.url+"...",LOG_DEBUG);
+    log("Getting JSON file "+this.url+"...",LOG_DEBUG);
     var that=this;
-    $.getJSON(that.url)
+    $.getJSON(that.url+"?time="+time())
       .done(that.dl_done)
       .fail(that.dl_fail);
   };
 
   this.getString=function() {
-//    log("Getting plain file "+this.url+"...",LOG_DEBUG);
-    $.get(this.url)
+    log("Getting plain file "+this.url+"...",LOG_DEBUG);
+    $.get(this.url+"?time="+time())
       .done(this.dl_done)
       .fail(this.dl_fail);
   };
+ 
+  this.getAudio=function() {
+    this.request=new XMLHttpRequest();
+    this.request.open("GET",this.url,true);
+    this.request.responseType="arraybuffer";
 
-  this.getImage=function() {
-//    log("Getting image "+this.url+"...",LOG_DEBUG);
-    this.data=new Image(this.url);
+    var that=this;
+
+    this.request.onload=function() {
+      prop.audio.context.decodeAudioData(that.request.response,function(buffer) {
+        that.dl_done(buffer);
+      },function() {
+        that.dl_fail({status: "unknown error"},"unknown error");
+      });
+    }
+    this.request.send();
+  };
+
+  this.getThreeGeometry=function() {
+    this.loader=new THREE.JSONLoader();
+    var that=this;
+    this.loader.load(this.url,function(geometry, materials) {
+      that.dl_done([geometry,materials]);
+    });
+  };
+
+ this.getImage=function() {
+    log("Getting image "+this.url+"...",LOG_DEBUG);
+    this.data.src=this.url+"?time="+time();
     this.data.onload=function() {
       var that=get_queue_current(); // we better be in a queue
       if(!that) {
@@ -54,46 +81,41 @@ var Content=function(options) {
     this.data.src=this.url;
   };
 
-  this.getAudio=function() {
-//    log("Getting audio "+this.url+"...",LOG_DEBUG);
-    this.data=new Audio(this.url);
-    this.dl_done(this.data);
-  };
-
   this.dl_done=function(data) {
-    async_loaded("get");
     var that=get_queue_current(); // we better be in a queue
     if(!that) {
       log("OHSHITSHITSHIT!",LOG_FATAL);
       return;
     }
+    that.data=data;
     that.status="done";
 //    log("Downloaded "+that.url,LOG_DEBUG);
     if(that.callback)
       that.callback.call(that.that,"ok",data,that.payload);
-    load_item_done();
     get_queue_check();
+    async_loaded("get");
   };
 
-  this.dl_fail=function(d,error) {
-    async_loaded("get");
+  this.dl_fail=function(d,error,retry) {
+    if(retry == null) retry=true
     var that=get_queue_current(); // we better be in a queue
     if(!that) {
       log("OHSHITSHITSHIT!",LOG_FATAL);
       return;
     }
-    var retry=true;
     log("Failed to get "+that.url+": "+d.status,LOG_WARNING)
     if(that.tries > prop.get.retry.max) {
       if(that.callback)
         that.callback.call(that.that,"fail",data,that.payload);
       that.status="fail";
       get_queue_check();
-      load_item_done();
+      async_loaded("get");
     } else {
-      setTimeout(function() {
-        that.get(); // try again
-      },prop.get.retry.time);
+      if(retry) {
+        setTimeout(function() {
+          that.get(); // try again
+        },prop.get.retry.time);
+      }
     }
   };
 
@@ -103,22 +125,26 @@ var Content=function(options) {
     var that=this;
     this.status="download";
     setTimeout(function() {
-      if(that.type == "json")
+      if(that.type == "json") {
         that.getJSON();
-      else if(that.type == "string")
+      } else if(that.type == "string") {
         that.getString();
-      else if(that.type == "image")
+      } else if(that.type == "image") {
         that.getImage();
-      else if(that.type == "audio")
+      } else if(that.type == "audio") {
         that.getAudio();
+      } else if(that.type == "three") {
+        that.getThreeGeometry();
+      } else {
+        that.dl_fail({status:"unknown content type "+that.type},"type",false);
+      }
     },0);
   };
 
-  load_item_add();
   get_queue_add(this);
 };
 
-function get_pre() {
+function get_init_pre() {
   prop.get={};
   prop.get.queue=[];
 

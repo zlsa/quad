@@ -10,7 +10,7 @@ function meters(m) {
   return m*prop.ui.scale;
 }
 
-function ui_update_post() {
-  prop.ui.pan[0] = -prop.quad.quads[0].body.position[0];
-  prop.ui.pan[1] =  prop.quad.quads[0].body.position[1];
+function ui_update_pre() {
+  prop.ui.pan[0] = -prop.quad.target[0];
+  prop.ui.pan[1] =  prop.quad.target[1];
 }

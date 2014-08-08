@@ -14,6 +14,7 @@ function input_init() {
   prop.input.keysym={
     shift:16,
     control:17,
+    r: 82,
     x:88,
     left:37,
     up:38,
@@ -36,10 +37,13 @@ function input_done() {
 }
 
 function input_keydown(keycode) {
-  // called with the users' key-repeat settings
+  if(keycode == prop.input.keysym.r) {
+    prop.quad.quads=[];
+    quad_init()
+  }
 }
 
-function input_update() {
+function input_update_pre() {
   var d=delta();
   if(prop.input.keys[prop.input.keysym.up]) {
     prop.quad.target[1] += 3*d;
