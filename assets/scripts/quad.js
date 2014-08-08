@@ -53,9 +53,9 @@ var Quad=Fiber.extend(function() {
       
       this.autopilot = {
         enabled: true,
-        vspeed: new PID(0.7, 0.5, 0.0),
-        hspeed: new PID(40, 30, 0),
-        angular_velocity: new PID(0.3, 0.01, 0)
+        vspeed: new PID(0.5, .5, 0.0),
+        hspeed: new PID(20, 3, 0),
+        angular_velocity: new PID(0.3, 0.005, 0)
       };
 
       if(options) {
@@ -86,23 +86,23 @@ var Quad=Fiber.extend(function() {
 
     updateAutopilot: function() {
       var real_target=this.updateTarget(time());
-      var target=this.updateTarget(time()+1.2);
+      var target=this.updateTarget(time()+0.5);
 
       var target_position = target[0];
       var target_altitude = target[1];
-      var target_hspeed = crange(-50, target_position - this.body.position[0], 50, -70, 70);
+      var target_hspeed = crange(-50, target_position - this.body.position[0], 50, -80, 80);
 
       var floor=1.0;
 
-      target_hspeed *= crange(0, this.body.position[1], floor, 5, 1);
-
       if(target_altitude < 0.1) {
         target_altitude  = scrange(0.02, Math.abs(real_target[0] - this.body.position[0]), 0.3*this.size, 0.08*this.size, Math.max(target_altitude, floor));
-        target_hspeed   *= scrange(0.02, Math.abs(real_target[0] - this.body.position[0]), floor*2, 0.5, 1);
+        target_hspeed   *= crange(0, this.body.position[1], floor*2, 3, 1);
+        target_hspeed   *= crange(0, this.body.position[1], 0.5, 3, 1);
       }
 
       var target_vspeed = crange(-70, target_altitude - this.body.position[1], 70, -70, 70);
       target_vspeed    *= crange(0, Math.abs(target_altitude - this.body.position[1]), 60, 1.2, 1);
+      target_vspeed    *= crange(0.1*this.size, this.body.position[1], floor, 3, 1);
 
       this.autopilot.vspeed.target = target_vspeed;
       this.autopilot.vspeed.input  = this.body.velocity[1];
@@ -115,7 +115,7 @@ var Quad=Fiber.extend(function() {
       var target_angle=crange(-40, this.autopilot.hspeed.get(), 40, Math.PI/4, -Math.PI/4);
       target_angle *= crange(0.1*this.size, this.body.position[1], floor, 0, 1);
 
-      if(prop.quad.flip && this.body.position[1] > 0.9) target_angle+=Math.PI;
+      if(prop.quad.flip && this.body.position[1] > floor) target_angle+=Math.PI;
 
       var s=crange(1,this.size, 3, 1, 0.1)*2;
       var target_angular_velocity = crange(-Math.PI/2, angle_difference(this.body.angle, target_angle), Math.PI/2, Math.PI*4*s, -Math.PI*4*s);
@@ -149,8 +149,10 @@ var Quad=Fiber.extend(function() {
       var left=clamp(-1, this.power.left, 1);
       var right=clamp(-1, this.power.right, 1);
 
-      this.power.left_motor  = left;
-      this.power.right_motor = right;
+      var mix=0.5;
+
+      this.power.left_motor  = (left *mix) + (this.power.left_motor*(1-mix));
+      this.power.right_motor = (right*mix) + (this.power.right_motor*(1-mix));
 
       var v=this.body.angle;
       var thrust=this.power.max*this.power.left_motor;
@@ -166,8 +168,9 @@ var Quad=Fiber.extend(function() {
       this.body.applyForce(force,point);
     },
     updateAudio: function() {
-      this.audio.left.setVolume(crange(0.05,Math.abs(this.power.left_motor), 0.1, 0, 0.7));
-      this.audio.right.setVolume(crange(0.05,Math.abs(this.power.right_motor), 0.1, 0, 0.7));
+      var v=0.5;
+      this.audio.left.setVolume(crange(0.05,Math.abs(this.power.left_motor), 0.1, 0, 0.7)*v);
+      this.audio.right.setVolume(crange(0.05,Math.abs(this.power.right_motor), 0.1, 0, 0.7)*v);
       var s=crange(1, this.size, 5, 1, 0.5);
       this.audio.left.setRate(crange(0,Math.abs(this.power.left_motor), 1, 0.2, 3)*s);
       this.audio.right.setRate(crange(0,Math.abs(this.power.right_motor), 1, 0.2, 3)*s);
@@ -196,7 +199,7 @@ function quad_init() {
   return;
   var separation=4;
   var d = 3;
-  var number=3;
+  var number=2;
   for(var i=0;i<number;i++) {
     var angle=i/number*Math.PI*2;
     quad_add(new Quad({
