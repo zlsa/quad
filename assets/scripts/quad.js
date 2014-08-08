@@ -54,7 +54,7 @@ var Quad=Fiber.extend(function() {
       this.autopilot = {
         enabled: true,
         vspeed: new PID(0.5, 0.5, 0.0),
-        hspeed: new PID(40, 2, 0),
+        hspeed: new PID(30, 20, 0),
         angular_velocity: new PID(0.3, 0.01, 0)
       };
 
@@ -115,7 +115,7 @@ var Quad=Fiber.extend(function() {
       var target_angle=crange(-40, this.autopilot.hspeed.get(), 40, Math.PI/4, -Math.PI/4);
       target_angle *= crange(0.1*this.size, this.body.position[1], floor, 0, 1);
 
-      if(prop.quad.flip && this.body.position[1] > 3) target_angle+=Math.PI;
+      if(prop.quad.flip && this.body.position[1] > 0.5) target_angle+=Math.PI;
 
       var s=crange(1,this.size, 3, 1, 0.1)*2;
       var target_angular_velocity = crange(-Math.PI/2, angle_difference(this.body.angle, target_angle), Math.PI/2, Math.PI*4*s, -Math.PI*4*s);
