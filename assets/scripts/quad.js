@@ -53,9 +53,9 @@ var Quad=Fiber.extend(function() {
       
       this.autopilot = {
         enabled: true,
-        vspeed: new PID(0.5, 0.8, 0.5),
-        hspeed: new PID(50, 70, 1.0),
-        angular_velocity: new PID(0.3, 0.005, 0.0002)
+        vspeed: new PID(0.5, 0.2, 0.1),
+        hspeed: new PID(50, 40, 0.7),
+        angular_velocity: new PID(0.3, 0.005, 0.001)
       };
 
       if(options) {
@@ -153,7 +153,7 @@ var Quad=Fiber.extend(function() {
       var left=clamp(-1, this.power.left, 1);
       var right=clamp(-1, this.power.right, 1);
 
-      var mix=0.8;
+      var mix=0.99;
 
       this.power.left_motor  = (left *mix) + (this.power.left_motor*(1-mix));
       this.power.right_motor = (right*mix) + (this.power.right_motor*(1-mix));

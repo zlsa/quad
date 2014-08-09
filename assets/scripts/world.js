@@ -17,5 +17,5 @@ function world_init_pre() {
 }
 
 function world_update_post() {
-  prop.world.world.step(delta());
+  prop.world.world.step(0.016);
 }
