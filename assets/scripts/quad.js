@@ -53,9 +53,9 @@ var Quad=Fiber.extend(function() {
       
       this.autopilot = {
         enabled: true,
-        vspeed: new PID(0.5, .5, 0.0),
-        hspeed: new PID(20, 3, 0),
-        angular_velocity: new PID(0.3, 0.005, 0)
+        vspeed: new PID(0.5, 0.8, 0.5),
+        hspeed: new PID(50, 70, 1.0),
+        angular_velocity: new PID(0.3, 0.005, 0.0002)
       };
 
       if(options) {
@@ -90,14 +90,14 @@ var Quad=Fiber.extend(function() {
 
       var target_position = target[0];
       var target_altitude = target[1];
-      var target_hspeed = crange(-50, target_position - this.body.position[0], 50, -80, 80);
+      var target_hspeed = crange(-80, target_position - this.body.position[0], 80, -80, 80);
 
       var floor=1.0;
 
       if(target_altitude < 0.1) {
-        target_altitude  = scrange(0.02, Math.abs(real_target[0] - this.body.position[0]), 0.3*this.size, 0.08*this.size, Math.max(target_altitude, floor));
-        target_hspeed   *= crange(0, this.body.position[1], floor*2, 3, 1);
-        target_hspeed   *= crange(0, this.body.position[1], 0.5, 3, 1);
+        target_altitude  = scrange(0.02, Math.abs(real_target[0] - this.body.position[0]), 0.5*this.size, 0.08*this.size, Math.max(target_altitude, floor));
+        target_hspeed   *= crange(0, this.body.position[1], floor*2, 1.5, 1);
+        target_hspeed   *= crange(0, this.body.position[1], floor, 3, 1);
       }
 
       var target_vspeed = crange(-70, target_altitude - this.body.position[1], 70, -70, 70);
@@ -110,9 +110,11 @@ var Quad=Fiber.extend(function() {
 
       this.autopilot.hspeed.target = target_hspeed;
       this.autopilot.hspeed.input  = this.body.velocity[0];
+      var e=750;
+      this.autopilot.hspeed.error  = clamp(-e, this.autopilot.hspeed.error, e);
       this.autopilot.hspeed.tick();
 
-      var target_angle=crange(-40, this.autopilot.hspeed.get(), 40, Math.PI/4, -Math.PI/4);
+      var target_angle=crange(-80, this.autopilot.hspeed.get(), 80, Math.PI/3, -Math.PI/3);
       target_angle *= crange(0.1*this.size, this.body.position[1], floor, 0, 1);
 
       if(prop.quad.flip && this.body.position[1] > floor) target_angle+=Math.PI;
@@ -124,7 +126,7 @@ var Quad=Fiber.extend(function() {
       this.autopilot.angular_velocity.input  = this.body.angularVelocity;
       this.autopilot.angular_velocity.tick();
 
-      var mix=0.5;
+      var mix=0.7;
       mix+=crange(1, this.size,5, 0, -0.3);
 
       var angle=this.body.angle;
@@ -133,6 +135,8 @@ var Quad=Fiber.extend(function() {
 
       this.power.left=clamp(-mix, this.power.left, mix);
       this.power.right=clamp(-mix, this.power.right, mix);
+
+      mix*=1.2;
 
       this.power.left  -= this.autopilot.angular_velocity.get() * (1-mix);
       this.power.right += this.autopilot.angular_velocity.get() * (1-mix);
@@ -149,7 +153,7 @@ var Quad=Fiber.extend(function() {
       var left=clamp(-1, this.power.left, 1);
       var right=clamp(-1, this.power.right, 1);
 
-      var mix=0.5;
+      var mix=0.8;
 
       this.power.left_motor  = (left *mix) + (this.power.left_motor*(1-mix));
       this.power.right_motor = (right*mix) + (this.power.right_motor*(1-mix));
@@ -172,8 +176,8 @@ var Quad=Fiber.extend(function() {
       this.audio.left.setVolume(crange(0.05,Math.abs(this.power.left_motor), 0.1, 0, 0.7)*v);
       this.audio.right.setVolume(crange(0.05,Math.abs(this.power.right_motor), 0.1, 0, 0.7)*v);
       var s=crange(1, this.size, 5, 1, 0.5);
-      this.audio.left.setRate(crange(0,Math.abs(this.power.left_motor), 1, 0.2, 3)*s);
-      this.audio.right.setRate(crange(0,Math.abs(this.power.right_motor), 1, 0.2, 3)*s);
+      this.audio.left.setRate(crange(0,Math.abs(this.power.left_motor), 1, 0.5, 3)*s);
+      this.audio.right.setRate(crange(0,Math.abs(this.power.right_motor), 1, 0.5, 3)*s);
     },
     update: function() {
       this.target = this.updateTarget(time());
@@ -187,7 +191,8 @@ var Quad=Fiber.extend(function() {
 function quad_init_pre() {
   prop.quad={};
   prop.quad.quads=[];
-  prop.quad.target=[0,3];
+  prop.quad.target_speed=[0,0];
+  prop.quad.target=[5,3];
   prop.quad.flip=false;
 }
 
@@ -215,7 +220,11 @@ function quad_add(quad) {
 }
 
 function quad_update_pre() {
-  prop.quad.target[1] = Math.max(0, prop.quad.target[1]);
+  prop.quad.target_speed[0] *= 0.9;
+  prop.quad.target_speed[1] *= 0.9;
+  prop.quad.target[0] += prop.quad.target_speed[0];
+  prop.quad.target[1] += prop.quad.target_speed[1];
+  prop.quad.target[1]  = Math.max(0, prop.quad.target[1]);
   for(var i=0;i<prop.quad.quads.length;i++) {
     prop.quad.quads[i].update();
   }

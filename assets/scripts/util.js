@@ -195,7 +195,7 @@ var PID=function(p, i, d) {
   },
 
   this.predict_error = function() {
-    return this.target - (this.input + (this.speed_lowpass.value * delta()));
+    return this.target - (this.input + (this.speed_lowpass.value));
   },
 
   this.tick = function() {
