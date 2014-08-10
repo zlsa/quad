@@ -34,6 +34,15 @@ function input_done() {
     console.log(e.which);
   });
 
+  $(window).mousemove(function(e) {
+    return;
+    var width=prop.canvas.size.width;
+    var height=prop.canvas.size.height;
+    var size=400/2;
+    prop.quad.target[0]=crange(width/2-size, e.pageX, width/2+size, -5, 5);
+    prop.quad.target[1]=crange(height/2-size, e.pageY, height/2+size, 10, -10);
+  });
+
 }
 
 function input_keydown(keycode) {
@@ -44,7 +53,7 @@ function input_keydown(keycode) {
 
 function input_update_pre() {
   var d=delta();
-  var s=1;
+  var s=3;
   if(prop.input.keys[prop.input.keysym.up]) {
     prop.quad.target_speed[1] += s*d;
   } else if(prop.input.keys[prop.input.keysym.down]) {

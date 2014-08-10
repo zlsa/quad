@@ -14,6 +14,7 @@ var MODULES=[
 
   "audio",
 
+  "autopilot",
   "quad",
   
   "world",
@@ -268,6 +269,7 @@ function update() {
 }
 
 function delta() {
+  return 0.016;
   if(prop.time.frame.delta)
     return prop.time.frame.delta;
   return 0.0001;

@@ -13,4 +13,6 @@ function meters(m) {
 function ui_update_pre() {
   prop.ui.pan[0] = -prop.quad.target[0];
   prop.ui.pan[1] =  prop.quad.target[1];
+  prop.ui.pan[0] = -prop.quad.quads[0].body.position[0];
+  prop.ui.pan[1] =  prop.quad.quads[0].body.position[1];
 }

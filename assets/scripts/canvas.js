@@ -65,21 +65,11 @@ function canvas_draw_grid(cc) {
   }
 }
 
-/* TARGET */
-
-function canvas_draw_target(cc, target) {
-  cc.fillStyle="#f00";
-  var size = 12;
-  cc.fillRect(-size/2 + meters(target[0]), -meters(target[1])-size/2, size, size);
-
-  cc.fillStyle="#fff";
-  size = 6;
-  cc.fillRect(-size/2 + meters(target[0]), -meters(target[1])-size/2, size, size);
-}
-
 /* QUAD */
 
 function canvas_draw_quad(cc, quad) {
+  cc.fillStyle="#f22";
+  cc.fillRect(meters(prop.quad.target[0])-5, -meters(prop.quad.target[1])-5, 10, 10);
   cc.save();
   var width  = meters(0.6);
   var height = Math.ceil(meters(0.07)) - 2;
@@ -127,24 +117,19 @@ function canvas_draw_quad(cc, quad) {
 
   cc.restore();
 
-  if(false) {
+  cc.beginPath();
+  cc.beginPath();
+  vspeed = -quad.autopilot.pid.verticalSpeed.error   * 50;
+  hspeed =  quad.autopilot.pid.horizontalSpeed.error * 50;
+  cc.moveTo(0, 0);
+  cc.lineTo(hspeed, vspeed);
 
-    cc.beginPath();
-    cc.beginPath();
-    vspeed = -quad.autopilot.vspeed.input * 30;
-    hspeed =  quad.autopilot.hspeed.input * 30;
-    cc.moveTo(0, 0);
-    cc.lineTo(hspeed, vspeed);
-
-    cc.lineCap="round";
-    cc.strokeStyle = "#f83";
-    cc.lineWidth=3;
-    cc.stroke();
-  }
+  cc.lineCap="round";
+  cc.strokeStyle = "#f83";
+  cc.lineWidth=3;
+  cc.stroke();
   
   cc.restore();
-  
-  canvas_draw_target(cc, quad.target);
 }
 
 function canvas_draw_quads(cc) {

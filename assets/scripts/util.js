@@ -171,14 +171,16 @@ var Lowpass=function(mix) {
   };
 };
 
-var PID=function(p, i, d) {
+var PID=function(p, i, d, ic, ek) {
   this.p = p;
   this.i = i;
   this.d = d;
+  
+  this.ic = ic || 0;
+  this.ek = ek || 0;
 
   this.target = 0;
   this.input  = 0;
-  this.speed  = 0;
 
   this.speed_lowpass = new Lowpass(0.99);
 
@@ -207,6 +209,8 @@ var PID=function(p, i, d) {
     this.proportional = this.error * this.p;
     this.integral += (this.error * this.i * delta());
     this.deriviative = this.predict_error() * this.d;
+
+    if(this.ic) this.integral = clamp(-this.ic, this.integral, this.ic);
 
     this.value = this.proportional + this.integral + this.deriviative;
   }
