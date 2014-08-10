@@ -108,7 +108,7 @@ function quad_init_pre() {
   prop.quad={};
   prop.quad.quads=[];
   prop.quad.target_speed=[0,0];
-  prop.quad.target=[0,0];
+  prop.quad.target=[0,10];
   prop.quad.flip=false;
 }
 
